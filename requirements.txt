@@ -1,4 +1,7 @@
 streamlit
-moviepy
 pandas
 ffmpeg-python
+
+# pip 経由で moviepy を明示的にインストール（uv で壊れるのを防ぐ）
+--extra-index-url https://pypi.org/simple
+moviepy==1.0.3
