@@ -5,7 +5,12 @@ import pandas as pd
 import os
 import requests
 
-st.title("🎬 VidClipper - 映像＋音声も自然につなぐ動画編集ツール（CSV不要版）")
+st.title("🎬 VidClipper - 映像＋音声も自然につなぐ動画編集ツール（Web入力対応）")
+
+# 状態管理
+if "processing" not in st.session_state:
+    st.session_state["processing"] = False
+processing = st.session_state["processing"]
 
 # 入力方式選択
 input_method = st.radio("動画ファイルの入力方法を選んでください：", ["ファイルをアップロード", "URLを入力"], index=0)
@@ -20,7 +25,7 @@ if input_method == "ファイルをアップロード":
             video_path = tmp_video.name
 elif input_method == "URLを入力":
     video_url = st.text_input("動画ファイルのURLを入力してください（Dropboxリンクは ?dl=1 に）")
-    if video_url and st.button("URLから動画を取得"):
+    if video_url and st.button("URLから動画を取得", disabled=processing):
         try:
             if "dropbox.com" in video_url and "dl=0" in video_url:
                 video_url = video_url.replace("dl=0", "dl=1")
@@ -38,8 +43,12 @@ elif input_method == "URLを入力":
 st.markdown("### ✂️ 切り出し区間（1行に1区間、`開始-終了` 形式、例: `00:01:00-00:02:30`）")
 time_text = st.text_area("切り出し時間を以下に入力してください：", height=150)
 
+# 実行ボタン
+run_button = st.button("実行", disabled=processing)
+
 # 実行処理
-if video_path and time_text and st.button("切り出して結合"):
+if video_path and time_text and run_button:
+    st.session_state["processing"] = True
     lines = [line.strip() for line in time_text.strip().split("\n") if line.strip()]
     segments = []
     parse_error = False
@@ -89,7 +98,9 @@ if video_path and time_text and st.button("切り出して結合"):
                     final.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
                 with open(output_path, "rb") as f:
-                    st.download_button("📥 ダウンロード - 結合動画（音声フェード付き）", f, file_name="vidclipper_output.mp4")
+                    st.download_button("ダウンロード", f, file_name="vidclipper_output.mp4")
 
         except Exception as e:
             st.error(f"処理中にエラーが発生しました: {e}")
+
+    st.session_state["processing"] = False
