@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import requests
 
-st.title("🎬 VidClipper - 映像＋音声も自然につなぐ動画編集ツール")
+st.title("🎬 VidClipper - 映像＋音声も自然につなぐ動画編集ツール（CSV不要版）")
 
 # 入力方式選択
 input_method = st.radio("動画ファイルの入力方法を選んでください：", ["ファイルをアップロード", "URLを入力"], index=0)
@@ -34,48 +34,62 @@ elif input_method == "URLを入力":
         except Exception as e:
             st.error(f"❌ 動画のダウンロードに失敗しました: {e}")
 
-# CSVアップロード
-csv_file = st.file_uploader("CSVファイルをアップロード（start,end）", type="csv")
+# ハイフン区切りによる切り出し時間の入力欄
+st.markdown("### ✂️ 切り出し区間（1行に1区間、`開始-終了` 形式、例: `00:01:00-00:02:30`）")
+time_text = st.text_area("切り出し時間を以下に入力してください：", height=150)
 
-# 切り出し＋音声フェード処理
-if video_path and csv_file and st.button("切り出して結合"):
-    df = pd.read_csv(csv_file)
+# 実行処理
+if video_path and time_text and st.button("切り出して結合"):
+    lines = [line.strip() for line in time_text.strip().split("\n") if line.strip()]
     segments = []
-    for i, row in df.iterrows():
+    parse_error = False
+
+    for i, line in enumerate(lines):
+        if "-" not in line:
+            st.error(f"❌ {i+1}行目にハイフン `-` がありません: 「{line}」")
+            parse_error = True
+            continue
+        parts = line.split("-")
+        if len(parts) != 2:
+            st.error(f"❌ {i+1}行目が不正です（開始-終了 の形式）: 「{line}」")
+            parse_error = True
+            continue
         try:
-            start = sum(x * int(t) for x, t in zip([3600, 60, 1], row["start"].split(":")[-3:]))
-            end = sum(x * int(t) for x, t in zip([3600, 60, 1], row["end"].split(":")[-3:]))
+            start = sum(x * int(t) for x, t in zip([3600, 60, 1], parts[0].split(":")[-3:]))
+            end = sum(x * int(t) for x, t in zip([3600, 60, 1], parts[1].split(":")[-3:]))
             segments.append((start, end))
         except:
-            st.warning(f"行 {i+1} の時間形式が無効です: {row}")
+            st.error(f"❌ {i+1}行目の時間形式が無効です: 「{line}」")
+            parse_error = True
 
-    try:
-        video = VideoFileClip(video_path)
-        video_duration = video.duration
-        valid_clips = []
+    if not parse_error:
+        try:
+            video = VideoFileClip(video_path)
+            video_duration = video.duration
+            valid_clips = []
 
-        for start, end in segments:
-            if start >= video_duration:
-                continue
-            if end > video_duration:
-                end = video_duration
-            clip = video.subclip(start, end)
-            clip = clip.fadein(0.5).fadeout(0.5)  # 映像フェード
-            if clip.audio:
-                clip.audio = clip.audio.audio_fadein(0.5).audio_fadeout(0.5)  # 音声フェード
-            valid_clips.append(clip)
+            for start, end in segments:
+                if start >= video_duration:
+                    continue
+                if end > video_duration:
+                    end = video_duration
+                clip = video.subclip(start, end)
+                clip = clip.fadein(0.5).fadeout(0.5)
+                if clip.audio:
+                    clip.audio = clip.audio.audio_fadein(0.5).audio_fadeout(0.5)
+                valid_clips.append(clip)
 
-        if not valid_clips:
-            st.error("有効な切り出し区間がありません。CSVを確認してください。")
-        else:
-            final = concatenate_videoclips(valid_clips, method="compose")
+            if not valid_clips:
+                st.error("有効な切り出し区間がありません。")
+            else:
+                final = concatenate_videoclips(valid_clips, method="compose")
 
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as out:
-                output_path = out.name
-                final.write_videofile(output_path, codec="libx264", audio_codec="aac")
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as out:
+                    output_path = out.name
+                    final.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
-            with open(output_path, "rb") as f:
-                st.download_button("📥 ダウンロード - 結合動画（音声フェード付き）", f, file_name="vidclipper_output.mp4")
+                with open(output_path, "rb") as f:
+                    st.download_button("📥 ダウンロード - 結合動画（音声フェード付き）", f, file_name="vidclipper_output.mp4")
 
-    except Exception as e:
-        st.error(f"処理中にエラーが発生しました: {e}")
+        except Exception as e:
+            st.error(f"処理中にエラーが発生しました: {e}")
