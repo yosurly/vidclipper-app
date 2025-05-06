@@ -1,5 +1,3 @@
-# 最終レイアウト指定に合わせた streamlit_app.py の再生成
-streamlit_layout_fixed = """\
 import streamlit as st
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 import tempfile
@@ -56,7 +54,7 @@ run_button = st.button("実行", disabled=processing)
 # 処理本体
 if video_path and time_text and run_button:
     st.session_state["processing"] = True
-    lines = [line.strip() for line in time_text.strip().split("\\n") if line.strip()]
+    lines = [line.strip() for line in time_text.strip().split("\n") if line.strip()]
     segments = []
     parse_error = False
 
@@ -110,11 +108,3 @@ if video_path and time_text and run_button:
             st.error(f"処理中にエラーが発生しました: {e}")
 
     st.session_state["processing"] = False
-"""
-
-# 保存
-streamlit_ui_path = "/mnt/data/streamlit_app.py"
-with open(streamlit_ui_path, "w") as f:
-    f.write(streamlit_layout_fixed)
-
-streamlit_ui_path
