@@ -1,30 +1,35 @@
+# 最終レイアウト指定に合わせた streamlit_app.py の再生成
+streamlit_layout_fixed = """\
 import streamlit as st
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 import tempfile
-import pandas as pd
 import os
 import requests
 
-st.title("🎬 VidClipper - 映像＋音声も自然につなぐ動画編集ツール（Web入力対応）")
-
-# 状態管理
+# セッション状態初期化
 if "processing" not in st.session_state:
     st.session_state["processing"] = False
 processing = st.session_state["processing"]
 
-# 入力方式選択
-input_method = st.radio("動画ファイルの入力方法を選んでください：", ["ファイルをアップロード", "URLを入力"], index=0)
+# タイトル（大きめ）
+st.markdown("<h1 style='font-size: 32px;'>VidClipper – 指定された区間の映像や音声を抜き出しシームレスにつなぎます</h1>", unsafe_allow_html=True)
+
+# 動画ファイルの入力
+st.markdown("<h3 style='margin-top: 2em;'>動画・音声ファイル：</h3>", unsafe_allow_html=True)
+input_method = st.radio("　", ["　〇ファイル", "　〇URL（Dropboxリンクは ?dl=1 に）"], index=0)
+
 video_path = None
 
-# 動画取得
-if input_method == "ファイルをアップロード":
-    video_file = st.file_uploader("動画ファイル（MP4など）をアップロード", type=["mp4", "mov", "avi", "mkv"])
+if input_method == "　〇ファイル":
+    st.markdown("　（ここに入力フィールド）")
+    video_file = st.file_uploader("", type=["mp4", "mov", "avi", "mkv", "webm"])
     if video_file:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_video:
             tmp_video.write(video_file.read())
             video_path = tmp_video.name
-elif input_method == "URLを入力":
-    video_url = st.text_input("動画ファイルのURLを入力してください（Dropboxリンクは ?dl=1 に）")
+else:
+    st.markdown("　（ここに入力フィールド）")
+    video_url = st.text_input("")
     if video_url and st.button("URLから動画を取得", disabled=processing):
         try:
             if "dropbox.com" in video_url and "dl=0" in video_url:
@@ -39,17 +44,19 @@ elif input_method == "URLを入力":
         except Exception as e:
             st.error(f"❌ 動画のダウンロードに失敗しました: {e}")
 
-# ハイフン区切りによる切り出し時間の入力欄
-st.markdown("### ✂️ 切り出し区間（1行に1区間、`開始-終了` 形式、例: `00:01:00-00:02:30`）")
-time_text = st.text_area("切り出し時間を以下に入力してください：", height=150)
+# 切り出し区間
+st.markdown("<h3 style='margin-top: 2em;'>切り出し区間：</h3>", unsafe_allow_html=True)
+st.markdown("　１行１区間で ”開始時間-終了時間”（例．00:01:00-00:30:00）", unsafe_allow_html=True)
+st.markdown("　（ここに複数行入力できるフィールドを）")
+time_text = st.text_area("", height=150)
 
 # 実行ボタン
 run_button = st.button("実行", disabled=processing)
 
-# 実行処理
+# 処理本体
 if video_path and time_text and run_button:
     st.session_state["processing"] = True
-    lines = [line.strip() for line in time_text.strip().split("\n") if line.strip()]
+    lines = [line.strip() for line in time_text.strip().split("\\n") if line.strip()]
     segments = []
     parse_error = False
 
@@ -82,8 +89,7 @@ if video_path and time_text and run_button:
                     continue
                 if end > video_duration:
                     end = video_duration
-                clip = video.subclip(start, end)
-                clip = clip.fadein(0.5).fadeout(0.5)
+                clip = video.subclip(start, end).fadein(0.5).fadeout(0.5)
                 if clip.audio:
                     clip.audio = clip.audio.audio_fadein(0.5).audio_fadeout(0.5)
                 valid_clips.append(clip)
@@ -104,3 +110,11 @@ if video_path and time_text and run_button:
             st.error(f"処理中にエラーが発生しました: {e}")
 
     st.session_state["processing"] = False
+"""
+
+# 保存
+streamlit_ui_path = "/mnt/data/streamlit_app.py"
+with open(streamlit_ui_path, "w") as f:
+    f.write(streamlit_layout_fixed)
+
+streamlit_ui_path
