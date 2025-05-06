@@ -14,20 +14,24 @@ st.markdown("<h1 style='font-size: 32px;'>VidClipper – 指定された区間�
 
 # 動画ファイルの入力
 st.markdown("<h3 style='margin-top: 2em;'>動画・音声ファイル：</h3>", unsafe_allow_html=True)
-input_method = st.radio("　", ["　〇ファイル", "　〇URL（Dropboxリンクは ?dl=1 に）"], index=0)
+input_method = st.radio("", ["ファイル", "URL（Dropboxリンクは ?dl=1 に）"], index=0)
 
 video_path = None
+uploaded_filename = ""
+video_url = ""
 
-if input_method == "　〇ファイル":
-    st.markdown("　（ここに入力フィールド）")
+if input_method == "ファイル":
     video_file = st.file_uploader("", type=["mp4", "mov", "avi", "mkv", "webm"])
     if video_file:
+        uploaded_filename = video_file.name
+        st.text(f"ファイル名：{uploaded_filename}")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_video:
             tmp_video.write(video_file.read())
             video_path = tmp_video.name
 else:
-    st.markdown("　（ここに入力フィールド）")
-    video_url = st.text_input("")
+    video_url = st.text_input("動画ファイルのURLを入力してください：")
+    if video_url:
+        st.text(f"入力されたURL：{video_url}")
     if video_url and st.button("URLから動画を取得", disabled=processing):
         try:
             if "dropbox.com" in video_url and "dl=0" in video_url:
@@ -44,8 +48,7 @@ else:
 
 # 切り出し区間
 st.markdown("<h3 style='margin-top: 2em;'>切り出し区間：</h3>", unsafe_allow_html=True)
-st.markdown("　１行１区間で ”開始時間-終了時間”（例．00:01:00-00:30:00）", unsafe_allow_html=True)
-st.markdown("　（ここに複数行入力できるフィールドを）")
+st.markdown("１行１区間で ”開始時間-終了時間”（例．00:01:00-00:30:00）", unsafe_allow_html=True)
 time_text = st.text_area("", height=150)
 
 # 実行ボタン
