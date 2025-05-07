@@ -14,14 +14,14 @@ st.markdown("<h1 style='font-size: 32px;'>VidClipper – 指定された区間�
 
 # 動画ファイルの入力
 st.markdown("<h3 style='margin-top: 2em;'>動画・音声ファイル：</h3>", unsafe_allow_html=True)
-input_method = st.radio("", ["ファイル", "URL（Dropboxリンクは ?dl=1 に）"], index=0)
+input_method = st.radio("ファイルまたはURLを選択してください", ["ファイル", "URL（Dropboxリンクは ?dl=1 に）"], index=0)
 
 video_path = None
 uploaded_filename = ""
 video_url = ""
 
 if input_method == "ファイル":
-    video_file = st.file_uploader("", type=["mp4", "mov", "avi", "mkv", "webm"])
+    video_file = st.file_uploader("動画ファイルを選択してください", type=["mp4", "mov", "avi", "mkv", "webm"])
     if video_file:
         uploaded_filename = video_file.name
         st.text(f"ファイル名：{uploaded_filename}")
@@ -49,7 +49,7 @@ else:
 # 切り出し区間
 st.markdown("<h3 style='margin-top: 2em;'>切り出し区間：</h3>", unsafe_allow_html=True)
 st.markdown("１行１区間で ”開始時間-終了時間”（例．00:01:00-00:30:00）", unsafe_allow_html=True)
-time_text = st.text_area("", height=150)
+time_text = st.text_area("切り出し時間を入力してください：", height=150)
 
 # 実行ボタン
 run_button = st.button("実行", disabled=processing)
