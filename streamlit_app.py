@@ -12,16 +12,17 @@ processing = st.session_state["processing"]
 # タイトル（大きめ）
 st.markdown("<h1 style='font-size: 32px;'>VidClipper – 指定された区間の映像や音声を抜き出しシームレスにつなぎます</h1>", unsafe_allow_html=True)
 
-# 動画ファイルの入力
+# 動画ファイルの入力（ファイルまたはURLの選択）
 st.markdown("<h3 style='margin-top: 2em;'>動画・音声ファイル：</h3>", unsafe_allow_html=True)
-input_method = st.radio("ファイルまたはURLを選択してください", ["ファイル", "URL（Dropboxリンクは ?dl=1 に）"], index=0)
+input_method = st.radio("", ["ファイル", "URL（Dropboxリンクは ?dl=1 に）"], index=0)
 
 video_path = None
 uploaded_filename = ""
 video_url = ""
 
 if input_method == "ファイル":
-    video_file = st.file_uploader("動画ファイルを選択してください", type=["mp4", "mov", "avi", "mkv", "webm"])
+    st.markdown("ファイル")
+    video_file = st.file_uploader("動画ファイルを選択してください", type=["mp4", "mov", "avi", "mkv", "webm"], label_visibility="collapsed")
     if video_file:
         uploaded_filename = video_file.name
         st.text(f"ファイル名：{uploaded_filename}")
@@ -29,7 +30,8 @@ if input_method == "ファイル":
             tmp_video.write(video_file.read())
             video_path = tmp_video.name
 else:
-    video_url = st.text_input("動画ファイルのURLを入力してください：")
+    st.markdown("URL（Dropboxリンクは ?dl=1 に）")
+    video_url = st.text_input("動画ファイルのURLを入力してください：", label_visibility="collapsed")
     if video_url:
         st.text(f"入力されたURL：{video_url}")
     if video_url and st.button("URLから動画を取得", disabled=processing):
@@ -48,8 +50,8 @@ else:
 
 # 切り出し区間
 st.markdown("<h3 style='margin-top: 2em;'>切り出し区間：</h3>", unsafe_allow_html=True)
-st.markdown("１行１区間で ”開始時間-終了時間”（例．00:01:00-00:30:00）", unsafe_allow_html=True)
-time_text = st.text_area("切り出し時間を入力してください：", height=150)
+st.markdown("１行１区間で ”開始時分秒-終了時分秒”（例．00:01:00-00:30:00）", unsafe_allow_html=True)
+time_text = st.text_area("", height=150, label_visibility="collapsed")
 
 # 実行ボタン
 run_button = st.button("実行", disabled=processing)
