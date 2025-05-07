@@ -6,7 +6,6 @@ import requests
 
 if "processing" not in st.session_state:
     st.session_state["processing"] = False
-processing = st.session_state["processing"]
 
 st.markdown("<h1 style='font-size: 32px;'>VidClipper – 指定された区間の映像や音声を抜き出しシームレスにつなぎます</h1>", unsafe_allow_html=True)
 
@@ -14,7 +13,6 @@ st.markdown("<h3 style='margin-top: 2em;'>動画・音声ファイル：</h3>", 
 input_method = st.radio("", ["ファイル", "URL（Dropboxリンクは ?dl=1 に）"], index=0)
 
 video_path = None
-video_url = ""
 
 if input_method == "ファイル":
     st.markdown("ファイル")
@@ -29,7 +27,7 @@ else:
     video_url = st.text_input("動画ファイルのURLを入力してください：", label_visibility="collapsed")
     if video_url:
         st.text(f"入力されたURL：{video_url}")
-    if video_url and st.button("URLから動画を取得", disabled=processing):
+    if video_url and st.button("URLから動画を取得"):
         try:
             if "dropbox.com" in video_url and "dl=0" in video_url:
                 video_url = video_url.replace("dl=0", "dl=1")
@@ -47,7 +45,7 @@ st.markdown("<h3 style='margin-top: 2em;'>切り出し区間：</h3>", unsafe_al
 st.markdown("１行１区間で ”開始時分秒-終了時分秒”（例．00:01:00-00:30:00）", unsafe_allow_html=True)
 time_text = st.text_area("", height=150, label_visibility="collapsed")
 
-run_button = st.button("実行", disabled=processing)
+run_button = st.button("実行")
 
 if video_path and time_text and run_button:
     st.session_state["processing"] = True
